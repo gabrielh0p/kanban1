@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela Kanban Interativa</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .kanban-table {
+            margin: 20px;
+        }
+        .kanban-cell {
+            min-height: 150px;
+            border: 1px solid #ced4da;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .task {
+            color: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+        .todo {
+            background-color: red; /* Tarefas em "A Fazer" */
+        }
+        .inprogress {
+            background-color: yellow; /* Tarefas em "Em Progresso" */
+            color: black; /* Texto preto para contraste */
+        }
+        .done {
+            background-color: green; /* Tarefas em "Concluído" */
+        }
+        .task:hover {
+            opacity: 0.8; /* Efeito de hover */
+        }
+        .delete-btn {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            background-color: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="text-center">Tabela Kanban Interativa</h1>
+    <table class="table kanban-table">
+        <thead>
+            <tr>
+                <th scope="col">A Fazer</th>
+                <th scope="col">Em Progresso</th>
+                <th scope="col">Concluído</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="kanban-cell" id="todo"></td>
+                <td class="kanban-cell" id="inprogress"></td>
+                <td class="kanban-cell" id="done"></td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="text-center">
+        <input type="text" id="taskInput" placeholder="Adicionar nova tarefa" class="form-control w-50" />
+        <select id="columnSelect" class="form-control w-50 mt-2">
+            <option value="todo">A Fazer</option>
+            <option value="inprogress">Em Progresso</option>
+            <option value="done">Concluído</option>
+        </select>
+        <button class="btn btn-primary mt-2" onclick="addTask()">Adicionar Tarefa</button>
+    </div>
+</div>
+
+<script>
+    function addTask() {
+        const taskInput = document.getElementById('taskInput');
+        const columnSelect = document.getElementById('columnSelect');
+        const taskName = taskInput.value.trim();
+        const columnId = columnSelect.value;
+
+        if (taskName) {
+            const taskDiv = document.createElement('div');
+            taskDiv.className = `task ${columnId}`; // Adiciona a classe da coluna
+            taskDiv.textContent = taskName;
+
+            // Botão de excluir
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '&times;'; // Símbolo de exclusão
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.onclick = () => deleteTask(taskDiv); // Remove a confirmação
+            taskDiv.appendChild(deleteBtn);
+
+            taskDiv.onclick = () => editTask(taskDiv);
+            document.getElementById(columnId).appendChild(taskDiv);
+            taskInput.value = ''; // Limpa o campo de entrada
+        } else {
+            alert('Por favor, insira uma tarefa.');
+        }
+    }
+
+    function editTask(taskDiv) {
+        const newTaskName = prompt('Edite a tarefa:', taskDiv.childNodes[0].textContent);
+        if (newTaskName !== null) {
+            taskDiv.childNodes[0].textContent = newTaskName.trim() || 'Tarefa sem nome';
+        }
+    }
+
+    function deleteTask(taskDiv) {
+        taskDiv.remove(); // Remove a tarefa sem confirmação
+    }
+
+    // Função para permitir a troca de tarefas entre colunas
+    const columns = document.querySelectorAll('.kanban-cell');
+    columns.forEach(column => {
+        column.addEventListener('dragover', (e) => e.preventDefault());
+        column.addEventListener('drop', (e) => {
+            const taskId = e.dataTransfer.getData('text/plain');
+            const task = document.getElementById(taskId);
+            column.appendChild(task);
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.task').forEach(task => {
+            task.draggable = true;
+            task.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', task.id);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
